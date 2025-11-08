@@ -1,9 +1,12 @@
 const cells = document.querySelectorAll(".cell")
 const restartBtn = document.getElementById("restart")
+const restartOBtn = document.getElementById("restartO")
 const turnTracker = document.getElementById('turnTracker')
 const selectRock = document.getElementById('selectRock')
 const selectPaper = document.getElementById('selectPaper')
 const selectScissors = document.getElementById('selectScissors')
+const singleplayerBtn = document.getElementById('singleplayer')
+const twoplayerBtn = document.getElementById('twoplayer')
 
 const winLines = [
     [0, 1, 2],
@@ -15,15 +18,20 @@ const winLines = [
     [0, 4, 8],
     [2, 4, 6]
 ]
+const moves = ["R", "P", "S"]
 const beatsDict = {"R": "S", "P": "R", "S": "P"}
 
+let gamemode = "singleplayer"
 let turn = "X"
 let gameOver = false
 let selectedMove = "R"
 
 function cellClicked(event){
     if (gameOver) {return}
-    cell = event.currentTarget
+    playMove(event.currentTarget)
+}
+
+function playMove(cell) {
     if (cell.textContent) {
         if (beatsDict[selectedMove] != cell.textContent) {return}
     }
@@ -31,6 +39,7 @@ function cellClicked(event){
     findWin()
     if (gameOver) {return}
     turn = (turn == "X") ? "O": "X"
+    if (turn == "O" && gamemode == "singleplayer") {return aiMove()}
     turnTracker.textContent = `${turn}'s turn`
 }
 
@@ -47,17 +56,34 @@ function findWin(){
     })
 }
 
+function restart(start){
+    cells.forEach(cell => cell.textContent = "")
+    gameOver = false
+    turn = start
+    turnTracker.textContent = `${start}'s turn`
+    if (turn == "O" && gamemode == "singleplayer") {aiMove()}
+}
+
+function randomMove(){
+    var cell = cells[Math.floor(Math.random() * cells.length)]
+    selectedMove = (cell.textContent) ? beatsDict[beatsDict[cell.textContent]] :moves[Math.floor(Math.random() * moves.length)]
+    playMove(cell)
+}
+
+function aiMove(){
+    randomMove()
+}
+
 cells.forEach(cell => 
     cell.addEventListener("click", cellClicked)
 )
 
-restartBtn.addEventListener("click", () => {
-    cells.forEach(cell => cell.textContent = "")
-    gameOver = false
-    turn = "X"
-    turnTracker.textContent = "X's turn"
-})
+restartBtn.addEventListener("click", () => restart("X"))
+restartOBtn.addEventListener("click", () => restart("O"))
 
 selectRock.addEventListener("click", () => {selectedMove = "R"})
 selectPaper.addEventListener("click", () => {selectedMove = "P"})
 selectScissors.addEventListener("click", () => {selectedMove = "S"})
+
+singleplayerBtn.addEventListener("click", () => {gamemode = "singleplayer"})
+twoplayerBtn.addEventListener("click", () => {gamemode = "twoplayer"})

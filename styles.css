@@ -33,9 +33,12 @@ button{
     padding: 8px 12px;
 }
 
-.movesDiv{
+.horizDiv{
     display: flex;
     flex-direction: row;
     gap: 1rem;
+}
+
+.movesDiv{
     margin-top: 1rem;
 }
