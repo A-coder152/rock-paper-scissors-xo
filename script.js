@@ -20,14 +20,16 @@ const winLines = [
 ]
 const moves = ["R", "P", "S"]
 const beatsDict = {"R": "S", "P": "R", "S": "P"}
+const rockfish = new Worker("rockfish.js")
 
 let gamemode = "singleplayer"
 let turn = "X"
 let gameOver = false
 let selectedMove = "R"
+let deepSearch = false
 
 function cellClicked(event){
-    if (gameOver) {return}
+    if (gameOver || turn == "O" && gamemode == "singleplayer") {return}
     playMove(event.currentTarget)
 }
 
@@ -50,11 +52,7 @@ function findWin(board = ""){
         let cell1 = board[line[0]]
         let cell2 = board[line[1]]
         let cell3 = board[line[2]]
-        if (cell1 == cell2 && cell3 && cell1 == cell3){
-            return true
-        }
-        //console.log(cell1, cell2, cell3, turn)
-        return false
+        return cell1 == cell2 && cell3 && cell1 == cell3
     })
 }
 
@@ -71,32 +69,6 @@ function restart(start){
     if (turn == "O" && gamemode == "singleplayer") {aiMove()}
 }
 
-function analyzeMove(simTurn, simCell, simBoard, history = new Set(), currentDepth = 0){
-    let newBoard = Array.from(simBoard)
-    newBoard[simCell[0]] = simCell[1]
-    if (findWin(newBoard)) {return simTurn}
-    if (currentDepth > 0) {return "D"}
-
-    let boardString = newBoard.join(" ")
-    if (history.has(boardString)) {return "I"}
-    let newHistory = new Set(history).add(boardString)
-
-    simTurn = (simTurn == "X") ? "O" : "X"
-    let outcomes = []
-
-    newBoard.forEach((scell, index) => {
-        if (scell) {
-            outcomes.push(analyzeMove(simTurn, [index, beatsDict[beatsDict[scell]]], newBoard, newHistory, currentDepth + 1))
-        } else {
-            moves.forEach(move => {
-                outcomes.push(analyzeMove(simTurn, [index, move], newBoard, newHistory, currentDepth + 1))
-            })
-        }
-    })
-
-    return outcomes
-}
-
 function randomMove(){
     let cell = cells[Math.floor(Math.random() * cells.length)]
     selectedMove = (cell.textContent) ? beatsDict[beatsDict[cell.textContent]] :moves[Math.floor(Math.random() * moves.length)]
@@ -104,21 +76,14 @@ function randomMove(){
 }
 
 function aiMove(){
-    let simBoard = Array.from(cells).map(cell => cell.textContent)
-    let outcomes = []
-    simBoard.forEach((scell, index) => {
-        if (scell) {
-            outcomes.push(analyzeMove(turn, [index, beatsDict[beatsDict[scell]]], simBoard))
-        } else {
-            moves.forEach(move => {
-                outcomes.push(analyzeMove(turn, [index, move], simBoard))
-            })
-        }
+    const simBoard = Array.from(cells).map(cell => cell.textContent);
+
+    rockfish.postMessage({
+        "type": "playMove",
+        "board": simBoard,
+        "currentTurn": turn,
+        "deepSearch": deepSearch
     })
-    //let total_outcomes = outcomes.length'
-    outcomes = outcomes.flat(Infinity)
-    console.log(outcomes.filter((outcome) => outcome == "X").length, outcomes.filter((outcome) => outcome == "O").length, outcomes)
-    randomMove()
 }
 
 cells.forEach(cell => 
