@@ -36,24 +36,31 @@ function playMove(cell) {
         if (beatsDict[selectedMove] != cell.textContent) {return}
     }
     cell.textContent = selectedMove
-    findWin()
+    if(findWin()) {endGame()}
     if (gameOver) {return}
     turn = (turn == "X") ? "O": "X"
-    if (turn == "O" && gamemode == "singleplayer") {return aiMove()}
+    if (turn == "O" && gamemode == "singleplayer") {return setTimeout(aiMove(), 0)}
     turnTracker.textContent = `${turn}'s turn`
 }
 
-function findWin(){
-    winLines.forEach((line) => {
-        let cell1 = cells[line[0]]
-        let cell2 = cells[line[1]]
-        let cell3 = cells[line[2]]
-        if (cell1.textContent == cell2.textContent && cell3.textContent && cell1.textContent == cell3.textContent){
-            turnTracker.textContent = `${turn} wins!`
-            gameOver = true
+function findWin(board = ""){
+    if (board == "") {board = Array.from(cells).map(cell => cell.textContent)}
+
+    return winLines.some((line) => {
+        let cell1 = board[line[0]]
+        let cell2 = board[line[1]]
+        let cell3 = board[line[2]]
+        if (cell1 == cell2 && cell3 && cell1 == cell3){
+            return true
         }
-        console.log(cell1.textContent, cell2.textContent, cell3.textContent, turn)
+        //console.log(cell1, cell2, cell3, turn)
+        return false
     })
+}
+
+function endGame(){
+    turnTracker.textContent = `${turn} wins!`
+    gameOver = true
 }
 
 function restart(start){
@@ -64,13 +71,53 @@ function restart(start){
     if (turn == "O" && gamemode == "singleplayer") {aiMove()}
 }
 
+function analyzeMove(simTurn, simCell, simBoard, history = new Set(), currentDepth = 0){
+    let newBoard = Array.from(simBoard)
+    newBoard[simCell[0]] = simCell[1]
+    if (findWin(newBoard)) {return simTurn}
+    if (currentDepth > 0) {return "D"}
+
+    let boardString = newBoard.join(" ")
+    if (history.has(boardString)) {return "I"}
+    let newHistory = new Set(history).add(boardString)
+
+    simTurn = (simTurn == "X") ? "O" : "X"
+    let outcomes = []
+
+    newBoard.forEach((scell, index) => {
+        if (scell) {
+            outcomes.push(analyzeMove(simTurn, [index, beatsDict[beatsDict[scell]]], newBoard, newHistory, currentDepth + 1))
+        } else {
+            moves.forEach(move => {
+                outcomes.push(analyzeMove(simTurn, [index, move], newBoard, newHistory, currentDepth + 1))
+            })
+        }
+    })
+
+    return outcomes
+}
+
 function randomMove(){
-    var cell = cells[Math.floor(Math.random() * cells.length)]
+    let cell = cells[Math.floor(Math.random() * cells.length)]
     selectedMove = (cell.textContent) ? beatsDict[beatsDict[cell.textContent]] :moves[Math.floor(Math.random() * moves.length)]
     playMove(cell)
 }
 
 function aiMove(){
+    let simBoard = Array.from(cells).map(cell => cell.textContent)
+    let outcomes = []
+    simBoard.forEach((scell, index) => {
+        if (scell) {
+            outcomes.push(analyzeMove(turn, [index, beatsDict[beatsDict[scell]]], simBoard))
+        } else {
+            moves.forEach(move => {
+                outcomes.push(analyzeMove(turn, [index, move], simBoard))
+            })
+        }
+    })
+    //let total_outcomes = outcomes.length'
+    outcomes = outcomes.flat(Infinity)
+    console.log(outcomes.filter((outcome) => outcome == "X").length, outcomes.filter((outcome) => outcome == "O").length, outcomes)
     randomMove()
 }
 
