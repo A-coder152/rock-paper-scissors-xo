@@ -20,8 +20,8 @@ const winLines = [
     [0, 4, 8],
     [2, 4, 6]
 ]
-const moves = ["R", "P", "S"]
-const beatsDict = {"R": "S", "P": "R", "S": "P"}
+const moves = ["R", "P", "✂"]
+const beatsDict = {"R": "✂", "P": "R", "✂": "P"}
 const rockfish = new Worker("rockfish.js")
 rockfish.onmessage = function(e){
     const analysis = e.data.analysis
@@ -94,14 +94,14 @@ function aiMove(){
     rockfish.postMessage({
         "type": "playMove",
         "board": simBoard,
-        "currentTurn": turn,
+        "turn": turn,
         "deepSearch": deepSearch,
-        "maxDepth": Math.round(Math.pow(botSkill / 350, 3))
+        "maxDepth": Math.pow(botSkill / 100, 2) / 10
     })
 }
 
 function skillBasedMovePick(moves, skill){
-    let temperature = (1100 / skill - 1) * 4
+    let temperature = Math.exp(1100 / skill - 1)
     const maxScore = moves[0].score
     
     const moveWeights = moves.map(move => {
@@ -133,7 +133,7 @@ restartOBtn.addEventListener("click", () => restart("O"))
 
 selectRock.addEventListener("click", () => {selectedMove = "R"})
 selectPaper.addEventListener("click", () => {selectedMove = "P"})
-selectScissors.addEventListener("click", () => {selectedMove = "S"})
+selectScissors.addEventListener("click", () => {selectedMove = "✂"})
 
 singleplayerBtn.addEventListener("click", () => {gamemode = "singleplayer"})
 twoplayerBtn.addEventListener("click", () => {gamemode = "twoplayer"})

@@ -8,8 +8,8 @@ const winLines = [
     [0, 4, 8],
     [2, 4, 6]
 ]
-const moves = ["R", "P", "S"]
-const beatsDict = {"R": "S", "P": "R", "S": "P"}
+const moves = ["R", "P", "✂"]
+const beatsDict = {"R": "✂", "P": "R", "✂": "P"}
 const positionsTable = new Map()
 
 let deepSearch = true
@@ -25,15 +25,22 @@ function findWin(board){
     })
 }
 
-function analyzeMove(ogMove, simTurn, simCell, simBoard, history = new Set(), currentDepth = 0, alpha = -Infinity, beta = Infinity){
+function analyzeMove(log, simTurn, simCell, simBoard, history = new Set(), currentDepth = 0, alpha = -Infinity, beta = Infinity){
+    if (log) {console.log("SFDSFSRG")}
     let newBoard = Array.from(simBoard)
     newBoard[simCell[0]] = simCell[1]
-    if (findWin(newBoard)) {return (simTurn == "X") ? -100 + currentDepth: 100 - currentDepth}
-    if (currentDepth > 10) {return 0}
-
     let boardString = newBoard.join("|") + simTurn
+    if (findWin(newBoard)) {
+        if (log) {console.log("WERWEFWERF")}
+        return (simTurn == "X") ? -100 + currentDepth: 100 - currentDepth
+    } else if (boardString == "|||R|R||||O"){console.log("YYOOOOOO")}
+    if (currentDepth > maxDepth) {return 0}
+
     if (history.has(boardString)) {return -5}
-    if (positionsTable.has(boardString)) {return positionsTable.get(boardString)}
+    if (positionsTable.has(boardString)) {
+        if (log) {console.log("WJHAAAAT", boardString, positionsTable.get(boardString))}
+        return positionsTable.get(boardString)
+    }
     let newHistory = new Set(history).add(boardString)
 
     simTurn = (simTurn == "X") ? "O" : "X"
@@ -50,13 +57,14 @@ function analyzeMove(ogMove, simTurn, simCell, simBoard, history = new Set(), cu
         }
     })
     outcomes.sort((a, b) => a.beats - b.beats)
+    if (log) {console.log("EGERGETG")}
 
     let death = []
     for (const outcome of outcomes){
         const play = [outcome.index, outcome.move]
 
-        const score = analyzeMove(ogMove, simTurn, play, newBoard, newHistory, currentDepth + 1, alpha, beta)
-        death.push(score)
+        const score = analyzeMove(false, simTurn, play, newBoard, newHistory, currentDepth + 1, alpha, beta)
+        death.push([score, play, simTurn])
         /*if (Math.random() > 0.999) {
             console.log(play, score, currentDepth + 1, newBoard.join("|"))
             console.log(simTurn)
@@ -73,8 +81,13 @@ function analyzeMove(ogMove, simTurn, simCell, simBoard, history = new Set(), cu
         if (!deepSearch && beta <= alpha){break}
     }
 
-    if (ogMove.index == 1 && ogMove.move == "S" && ogMove.beats == 0 && currentDepth <= 1) {console.log(death, simCell, bestScore, simTurn)}
-    if (bestScore != 0) {positionsTable.set(boardString, (100 - newBoard.reduce((sum, thing) => thing? sum+1:sum, 0)) * Math.sign(bestScore))}
+    if (log) {console.log(death)}
+    let boardSpots = newBoard.reduce((sum, thing) => thing? sum+1:sum, 0)
+    boardSpots += (simTurn == "X") ? boardSpots % 2 : (boardSpots + 1) % 2
+    if (bestScore != 0) {
+        if (boardString == "R||S||R||||X") {console.log(death, bestScore, newHistory)}
+        positionsTable.set(boardString, (100 - boardSpots) * Math.sign(bestScore))
+    }
     return bestScore
 }
 
@@ -93,7 +106,9 @@ function startAnalysis(simBoard, simTurn){
     outcomes.sort((a, b) => a.beats - b.beats)
 
     outcomes.forEach(outcome => {
-        const score = analyzeMove(outcome, simTurn, [outcome.index, outcome.move], simBoard)
+        let kfmd = JSON.stringify([outcome.index, outcome.move]) == JSON.stringify([2, "✂"])
+        if (kfmd) {console.log("now")}
+        const score = analyzeMove(kfmd, simTurn, [outcome.index, outcome.move], simBoard)
         analyzedMoves.push({"move": [outcome.index, outcome.move], "score": score})
     })
 
@@ -108,7 +123,7 @@ function startAnalysis(simBoard, simTurn){
 
 onmessage = function(e) {
     if (e.data.type == "playMove"){
-        maxDepth = e.data.maxDepth * 4
+        maxDepth = e.data.maxDepth
         console.log(maxDepth)
         let analysis = startAnalysis(e.data.board, e.data.turn)
         self.postMessage({"analysis": analysis})
