@@ -7,6 +7,8 @@ const selectPaper = document.getElementById('selectPaper')
 const selectScissors = document.getElementById('selectScissors')
 const singleplayerBtn = document.getElementById('singleplayer')
 const twoplayerBtn = document.getElementById('twoplayer')
+const botSkillBar = document.getElementById('botSkill')
+const botSkillDisplay = document.getElementById('botSkillP')
 
 const winLines = [
     [0, 1, 2],
@@ -24,9 +26,11 @@ const rockfish = new Worker("rockfish.js")
 rockfish.onmessage = function(e){
     const analysis = e.data.analysis
     console.log(analysis)
+    let chosenMove = skillBasedMovePick(analysis, botSkill)
+    console.log(chosenMove)
 
-    selectedMove = analysis[0].move[1]
-    playMove(cells[analysis[0].move[0]])
+    selectedMove = chosenMove.move[1]
+    playMove(cells[chosenMove.move[0]])
 }
 
 
@@ -35,6 +39,7 @@ let turn = "X"
 let gameOver = false
 let selectedMove = "R"
 let deepSearch = false
+let botSkill = 300
 
 function cellClicked(event){
     if (gameOver || turn == "O" && gamemode == "singleplayer") {return}
@@ -90,8 +95,33 @@ function aiMove(){
         "type": "playMove",
         "board": simBoard,
         "currentTurn": turn,
-        "deepSearch": deepSearch
+        "deepSearch": deepSearch,
+        "maxDepth": Math.round(Math.pow(botSkill / 350, 3))
     })
+}
+
+function skillBasedMovePick(moves, skill){
+    let temperature = (1100 / skill - 1) * 4
+    const maxScore = moves[0].score
+    
+    const moveWeights = moves.map(move => {
+        return Math.exp((move.score - maxScore) / temperature)
+    })
+    const totalWeight = moveWeights.reduce((sum, weight) => sum + weight, 0)
+
+    let cProbabilities = []
+    let cSum = 0
+    for (let i = 0; i < moveWeights.length; i++){
+        cSum += moveWeights[i] / totalWeight
+        cProbabilities.push(cSum)
+    }
+
+    const rndNum = Math.random()
+    for (let i = 0; i < moves.length; i++){
+        if (rndNum < cProbabilities[i]) {return moves[i]}
+    }
+
+    return moves[-1]
 }
 
 cells.forEach(cell => 
@@ -107,3 +137,8 @@ selectScissors.addEventListener("click", () => {selectedMove = "S"})
 
 singleplayerBtn.addEventListener("click", () => {gamemode = "singleplayer"})
 twoplayerBtn.addEventListener("click", () => {gamemode = "twoplayer"})
+
+botSkillBar.addEventListener("input", function(){
+    botSkill = this.value
+    botSkillDisplay.textContent = botSkill
+})

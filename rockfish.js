@@ -12,7 +12,8 @@ const moves = ["R", "P", "S"]
 const beatsDict = {"R": "S", "P": "R", "S": "P"}
 const positionsTable = new Map()
 
-let deepSearch = false
+let deepSearch = true
+let maxDepth = 100
 
 
 function findWin(board){
@@ -28,7 +29,7 @@ function analyzeMove(simTurn, simCell, simBoard, history = new Set(), currentDep
     let newBoard = Array.from(simBoard)
     newBoard[simCell[0]] = simCell[1]
     if (findWin(newBoard)) {return (simTurn == "X") ? -100 + currentDepth: 100 - currentDepth}
-    if (currentDepth > 100) {return 0}
+    if (currentDepth > maxDepth) {return 0}
 
     let boardString = newBoard.join("|") + simTurn
     if (history.has(boardString)) {return -5}
@@ -101,6 +102,8 @@ function startAnalysis(simBoard, simTurn){
 
 onmessage = function(e) {
     if (e.data.type == "playMove"){
+        maxDepth = e.data.maxDepth * 4
+        console.log(maxDepth)
         let analysis = startAnalysis(e.data.board, e.data.turn)
         self.postMessage({"analysis": analysis})
     }
