@@ -1,5 +1,5 @@
 const cells = document.querySelectorAll(".cell")
-const restartBtn = document.getElementById("restart")
+const restartXBtn = document.getElementById("restartX")
 const restartOBtn = document.getElementById("restartO")
 const turnTracker = document.getElementById('turnTracker')
 const selectRock = document.getElementById('selectRock')
@@ -20,8 +20,9 @@ const winLines = [
     [0, 4, 8],
     [2, 4, 6]
 ]
-const moves = ["R", "P", "✂"]
-const beatsDict = {"R": "✂", "P": "R", "✂": "P"}
+const moves = ["☗", "🗋", "✂"]
+const beatsDict = {"☗": "✂", "🗋": "☗", "✂": "🗋"}
+
 const rockfish = new Worker("rockfish.js")
 rockfish.onmessage = function(e){
     const analysis = e.data.analysis
@@ -29,7 +30,7 @@ rockfish.onmessage = function(e){
     let chosenMove = skillBasedMovePick(analysis, botSkill)
     console.log(chosenMove)
 
-    selectedMove = chosenMove.move[1]
+    changeSelection(chosenMove.move[1])
     playMove(cells[chosenMove.move[0]])
 }
 
@@ -37,7 +38,7 @@ rockfish.onmessage = function(e){
 let gamemode = "singleplayer"
 let turn = "X"
 let gameOver = false
-let selectedMove = "R"
+let selectedMove = "☗"
 let deepSearch = false
 let botSkill = 300
 
@@ -124,19 +125,39 @@ function skillBasedMovePick(moves, skill){
     return moves[-1]
 }
 
+function changeSelection(newMove){
+    if (newMove == selectedMove) {return}
+    const moveToBtn = {"☗": selectRock, "🗋": selectPaper, "✂": selectScissors}
+    moveToBtn[selectedMove].classList.remove("selectedBtn")
+    selectedMove = newMove
+    moveToBtn[selectedMove].classList.add("selectedBtn")
+}
+
 cells.forEach(cell => 
     cell.addEventListener("click", cellClicked)
 )
 
-restartBtn.addEventListener("click", () => restart("X"))
+restartXBtn.addEventListener("click", () => restart("X"))
 restartOBtn.addEventListener("click", () => restart("O"))
 
-selectRock.addEventListener("click", () => {selectedMove = "R"})
-selectPaper.addEventListener("click", () => {selectedMove = "P"})
-selectScissors.addEventListener("click", () => {selectedMove = "✂"})
+selectRock.addEventListener("click", () => changeSelection("☗"))
+selectPaper.addEventListener("click", () => changeSelection("🗋"))
+selectScissors.addEventListener("click", () => changeSelection("✂"))
 
-singleplayerBtn.addEventListener("click", () => {gamemode = "singleplayer"})
-twoplayerBtn.addEventListener("click", () => {gamemode = "twoplayer"})
+singleplayerBtn.addEventListener("click", () => {
+    if (gamemode == "singleplayer") {return}
+    twoplayerBtn.classList.remove("selectedBtn")
+    gamemode = "singleplayer"
+    singleplayerBtn.classList.add("selectedBtn")
+    restart("X")
+})
+twoplayerBtn.addEventListener("click", () => {
+    if (gamemode == "twoplayer") {return}
+    singleplayerBtn.classList.remove("selectedBtn")
+    gamemode = "twoplayer"
+    twoplayerBtn.classList.add("selectedBtn")
+    restart("X")
+})
 
 botSkillBar.addEventListener("input", function(){
     botSkill = this.value

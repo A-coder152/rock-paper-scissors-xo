@@ -8,8 +8,8 @@ const winLines = [
     [0, 4, 8],
     [2, 4, 6]
 ]
-const moves = ["R", "P", "✂"]
-const beatsDict = {"R": "✂", "P": "R", "✂": "P"}
+const moves = ["☗", "🗋", "✂"]
+const beatsDict = {"☗": "✂", "🗋": "☗", "✂": "🗋"}
 const positionsTable = new Map()
 
 let deepSearch = true
