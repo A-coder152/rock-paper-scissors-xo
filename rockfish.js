@@ -25,11 +25,11 @@ function findWin(board){
     })
 }
 
-function analyzeMove(simTurn, simCell, simBoard, history = new Set(), currentDepth = 0, alpha = -Infinity, beta = Infinity){
+function analyzeMove(ogMove, simTurn, simCell, simBoard, history = new Set(), currentDepth = 0, alpha = -Infinity, beta = Infinity){
     let newBoard = Array.from(simBoard)
     newBoard[simCell[0]] = simCell[1]
     if (findWin(newBoard)) {return (simTurn == "X") ? -100 + currentDepth: 100 - currentDepth}
-    if (currentDepth > maxDepth) {return 0}
+    if (currentDepth > 10) {return 0}
 
     let boardString = newBoard.join("|") + simTurn
     if (history.has(boardString)) {return -5}
@@ -42,18 +42,21 @@ function analyzeMove(simTurn, simCell, simBoard, history = new Set(), currentDep
     let outcomes = []
     newBoard.forEach((scell, index) => {
         if (scell) {
-            outcomes.push({"index": index, "move": beatsDict[beatsDict[scell]]})
+            outcomes.push({"index": index, "move": beatsDict[beatsDict[scell]], "beats": 1})
         } else {
             moves.forEach(move => {
-                outcomes.push({"index": index, "move": move})
+                outcomes.push({"index": index, "move": move, "beats": 0})
             })
         }
     })
+    outcomes.sort((a, b) => a.beats - b.beats)
 
+    let death = []
     for (const outcome of outcomes){
         const play = [outcome.index, outcome.move]
 
-        const score = analyzeMove(simTurn, play, newBoard, newHistory, currentDepth + 1, alpha, beta)
+        const score = analyzeMove(ogMove, simTurn, play, newBoard, newHistory, currentDepth + 1, alpha, beta)
+        death.push(score)
         /*if (Math.random() > 0.999) {
             console.log(play, score, currentDepth + 1, newBoard.join("|"))
             console.log(simTurn)
@@ -70,7 +73,8 @@ function analyzeMove(simTurn, simCell, simBoard, history = new Set(), currentDep
         if (!deepSearch && beta <= alpha){break}
     }
 
-    positionsTable.set(boardString, bestScore)
+    if (ogMove.index == 1 && ogMove.move == "S" && ogMove.beats == 0 && currentDepth <= 1) {console.log(death, simCell, bestScore, simTurn)}
+    if (bestScore != 0) {positionsTable.set(boardString, (100 - newBoard.reduce((sum, thing) => thing? sum+1:sum, 0)) * Math.sign(bestScore))}
     return bestScore
 }
 
@@ -79,20 +83,22 @@ function startAnalysis(simBoard, simTurn){
     let analyzedMoves = []
     simBoard.forEach((scell, index) => {
         if (scell) {
-            outcomes.push({"index": index, "move": beatsDict[beatsDict[scell]]})
+            outcomes.push({"index": index, "move": beatsDict[beatsDict[scell]], "beats": 1})
         } else {
             moves.forEach(move => {
-                outcomes.push({"index": index, "move": move})
+                outcomes.push({"index": index, "move": move, "beats": 0})
             })
         }
     })
+    outcomes.sort((a, b) => a.beats - b.beats)
 
     outcomes.forEach(outcome => {
-        const score = analyzeMove(simTurn, [outcome.index, outcome.move], simBoard)
+        const score = analyzeMove(outcome, simTurn, [outcome.index, outcome.move], simBoard)
         analyzedMoves.push({"move": [outcome.index, outcome.move], "score": score})
     })
 
     analyzedMoves.sort((a, b) => b.score - a.score)
+    console.log(positionsTable)
     return analyzedMoves
     //let total_outcomes = outcomes.length'
     //outcomes = outcomes.flat(Infinity)
