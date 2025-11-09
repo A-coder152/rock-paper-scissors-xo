@@ -21,6 +21,14 @@ const winLines = [
 const moves = ["R", "P", "S"]
 const beatsDict = {"R": "S", "P": "R", "S": "P"}
 const rockfish = new Worker("rockfish.js")
+rockfish.onmessage = function(e){
+    const analysis = e.data.analysis
+    console.log(analysis)
+
+    selectedMove = analysis[0].move[1]
+    playMove(cells[analysis[0].move[0]])
+}
+
 
 let gamemode = "singleplayer"
 let turn = "X"
