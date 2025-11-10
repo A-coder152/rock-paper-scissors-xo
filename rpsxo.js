@@ -34,13 +34,32 @@ rockfish.onmessage = function(e){
     playMove(cells[chosenMove.move[0]])
 }
 
-
 let gamemode = "singleplayer"
 let turn = "X"
 let gameOver = false
 let selectedMove = "☗"
 let deepSearch = false
-let botSkill = 300
+let botSkill = 100
+
+let user = {
+    "rating": 100,
+    "bestRating": 100,
+    "ratingHistory": [100],
+    "WLR": [0, 0], "WLA": [0, 0],
+    "R": 0, "P": 0, "S": 0,
+    "R0": 0, "R1": 0, "R2": 0, "R3": 0, "R4": 0, "R5": 0, "R6": 0, "R7": 0, "R8": 0,
+    "P0": 0, "P1": 0, "P2": 0, "P3": 0, "P4": 0, "P5": 0, "P6": 0, "P7": 0, "P8": 0,
+    "S0": 0, "S1": 0, "S2": 0, "S3": 0, "S4": 0, "S5": 0, "S6": 0, "S7": 0, "S8": 0
+}
+
+async function save(){
+    await localForage.setItem("user", user)
+}
+
+async function load(){
+    let storedUser = await localForage.getItem("user")
+    if (storedUser) {user = storedUser} else {save()}
+}
 
 function cellClicked(event){
     if (gameOver || turn == "O" && gamemode == "singleplayer") {return}
@@ -59,8 +78,8 @@ function playMove(cell) {
     turnTracker.textContent = `${turn}'s turn`
 }
 
-function findWin(board = ""){
-    if (board == "") {board = Array.from(cells).map(cell => cell.textContent)}
+function findWin(){
+    let board = Array.from(cells).map(cell => cell.textContent)
 
     return winLines.some((line) => {
         let cell1 = board[line[0]]
@@ -137,21 +156,21 @@ cells.forEach(cell =>
     cell.addEventListener("click", cellClicked)
 )
 
-restartXBtn.addEventListener("click", () => restart("X"))
-restartOBtn.addEventListener("click", () => restart("O"))
+if (restartXBtn) restartXBtn.addEventListener("click", () => restart("X"))
+if (restartOBtn) restartOBtn.addEventListener("click", () => restart("O"))
 
 selectRock.addEventListener("click", () => changeSelection("☗"))
 selectPaper.addEventListener("click", () => changeSelection("🗋"))
 selectScissors.addEventListener("click", () => changeSelection("✂"))
 
-singleplayerBtn.addEventListener("click", () => {
+if (singleplayerBtn) singleplayerBtn.addEventListener("click", () => {
     if (gamemode == "singleplayer") {return}
     twoplayerBtn.classList.remove("selectedBtn")
     gamemode = "singleplayer"
     singleplayerBtn.classList.add("selectedBtn")
     restart("X")
 })
-twoplayerBtn.addEventListener("click", () => {
+if (twoplayerBtn) twoplayerBtn.addEventListener("click", () => {
     if (gamemode == "twoplayer") {return}
     singleplayerBtn.classList.remove("selectedBtn")
     gamemode = "twoplayer"
@@ -159,7 +178,9 @@ twoplayerBtn.addEventListener("click", () => {
     restart("X")
 })
 
-botSkillBar.addEventListener("input", function(){
+if (botSkillBar) botSkillBar.addEventListener("input", function(){
     botSkill = this.value
     botSkillDisplay.textContent = botSkill
 })
+
+load()

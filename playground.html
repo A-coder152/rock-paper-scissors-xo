@@ -5,7 +5,10 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <h1>rpsxo</h1>
+        <div class="horizDiv">
+            <h1>rpsxo</h1>
+            <a href="index.html"><button>Return</button></a>
+        </div>
         <div class="horizDiv">
             <button class="selectedBtn" id='singleplayer'>Singleplayer (AI)</button>
             <button id="twoplayer">Two player (Local)</button>
@@ -36,6 +39,7 @@
             <button id="restartX">Restart (X First)</button>
             <button id="restartO">Restart (O First)</button>
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
         <script src="rpsxo.js"></script>
     </body>
 </html>
