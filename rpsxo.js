@@ -53,16 +53,19 @@ let user = {
 }
 
 async function save(){
-    await localForage.setItem("user", user)
+    await localforage.setItem("user", user)
 }
 
 async function load(){
-    let storedUser = await localForage.getItem("user")
+    let storedUser = await localforage.getItem("user")
     if (storedUser) {user = storedUser} else {save()}
 }
 
 function cellClicked(event){
     if (gameOver || turn == "O" && gamemode == "singleplayer") {return}
+    let moveToStr = {"☗": "R", "🗋": "P", "✂": "S"}
+    user[moveToStr[selectedMove]] += 1
+    save()
     playMove(event.currentTarget)
 }
 
