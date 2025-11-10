@@ -5,37 +5,22 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <h1>rpsxo</h1>
-        <div class="horizDiv">
-            <button class="selectedBtn" id='singleplayer'>Singleplayer (AI)</button>
-            <button id="twoplayer">Two player (Local)</button>
+        <h1 class="bigspace">rpsxo</h1>
+        <div class="horizDiv landingDiv">
+            <div>
+                <a href="playground.html">
+                    <div class="horizDiv landingCard">
+                        <h1 class="cardIcon">⚙</h1>
+                        <div class="cardContent">
+                            <h2>Casual Play</h2>
+                            <p>Play around with AIs of different skill, <br> or try your own strategies.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div>
+                <h2>Yo Satst</h2>
+            </div>
         </div>
-        <div class="horizDiv">
-            <p>Bot skill:</p>
-            <p id="botSkillP">300</p>
-            <input type="range" id="botSkill" min="1" max="1000" step="1" value="300">
-        </div>
-        <div class="board">
-            <div class="cell" id="cell-0"></div>
-            <div class="cell" id="cell-1"></div>
-            <div class="cell" id="cell-2"></div>
-            <div class="cell" id="cell-3"></div>
-            <div class="cell" id="cell-4"></div>
-            <div class="cell" id="cell-5"></div>
-            <div class="cell" id="cell-6"></div>
-            <div class="cell" id="cell-7"></div>
-            <div class="cell" id="cell-8"></div>
-        </div>
-        <div class="horizDiv movesDiv">
-            <button class="selectedBtn" id="selectRock">Rock</button>
-            <button id="selectPaper">Paper</button>
-            <button id="selectScissors">Scissors</button>
-        </div>
-        <h3 id="turnTracker">X's turn</h3>
-        <div class="horizDiv">
-            <button id="restartX">Restart (X First)</button>
-            <button id="restartO">Restart (O First)</button>
-        </div>
-        <script src="script.js"></script>
     </body>
 </html>
